@@ -1,0 +1,9 @@
+ffmpeg
+mediapy
+opencv-python-headless < 4.3
+matplotlib
+tensorflow
+tqdm
+numpy
+pathlib
+tensorflow_hub

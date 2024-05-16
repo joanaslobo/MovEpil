@@ -2,9 +2,10 @@ from tqdm.auto import tqdm
 import numpy as np
 import torch.utils.data
 from torcheval.metrics import MulticlassAccuracy, Mean
+import copy
 
 
-def train_silence(model, optimizer, criterion, epochs, train_dataset, val_dataset, device, num_classes, preprocess=None):
+def train_silence(model, optimizer, criterion, epochs, train_dataset, val_dataset, device, num_classes, best_model_path, preprocess=None):
     train_history_epoch_loss = []
     val_history_epoch_loss = []
 
@@ -14,6 +15,8 @@ def train_silence(model, optimizer, criterion, epochs, train_dataset, val_datase
     # # micro is global
     train_epoch_metric = MulticlassAccuracy(average="micro", num_classes=num_classes, k=1).to(device)
     val_epoch_metric = MulticlassAccuracy(average="micro", num_classes=num_classes, k=1).to(device)
+
+    best_val_loss = np.inf
 
     with tqdm(total=epochs) as epoch_p_bar:
         for epoch in range(epochs):
@@ -63,6 +66,11 @@ def train_silence(model, optimizer, criterion, epochs, train_dataset, val_datase
 
             train_history_epoch_loss.append(train_epoch_loss.compute().item())
             val_history_epoch_loss.append(val_epoch_loss.compute().item())
+
+            if val_history_epoch_loss[-1] < best_val_loss:
+                best_val_loss = val_history_epoch_loss[-1]
+                best_model_state = copy.deepcopy(model.state_dict())
+                torch.save(best_model_state, best_model_path)
 
             epoch_p_bar.set_description(f"[loss: {round(train_history_epoch_loss[-1], 4)} - val_loss: {round(val_history_epoch_loss[-1], 4)} | "
                                         f"Train accuracy: {round(train_epoch_metric.compute().item(), 2)} - Val accuracy: {round(val_epoch_metric.compute().item(), 2)}]")

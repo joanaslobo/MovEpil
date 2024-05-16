@@ -59,6 +59,7 @@ def train_silence(model, optimizer, criterion, epochs, train_dataset, val_datase
                     #Update metrics
                     val_epoch_metric.update(input=y_val_pred.softmax(dim=1), target=y_val)
                     val_epoch_loss.update(val_loss * val_batch_len)
+            model.train()
 
             train_history_epoch_loss.append(train_epoch_loss.compute().item())
             val_history_epoch_loss.append(val_epoch_loss.compute().item())
@@ -74,6 +75,6 @@ def train_silence(model, optimizer, criterion, epochs, train_dataset, val_datase
 
             epoch_p_bar.update(1)
 
-    model.train(False)
+
     return train_history_epoch_loss, val_history_epoch_loss
 

@@ -44,6 +44,7 @@ def plot_losses(train_epoch_loss, val_epoch_loss):
 
     plt.plot(train_epoch_loss, label="Training Loss")
     plt.plot(val_epoch_loss, label="Training Loss")
+    plt.legend()
     plt.show()
 
 

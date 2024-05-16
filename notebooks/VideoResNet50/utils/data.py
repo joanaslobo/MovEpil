@@ -28,7 +28,7 @@ class VideoDataset(torch.utils.data.Dataset):
 
 
     def __getitem__(self, idx):
-        video_data = torchvision.io.read_video(self.videos_path[idx], end_pts=127, pts_unit="pts", output_format=self.output_format)
+        video_data = torchvision.io.read_video(self.videos_path[idx], end_pts=64, pts_unit="pts", output_format=self.output_format)
 
         video_frames = video_data[0]
         
@@ -41,28 +41,29 @@ class VideoDataset(torch.utils.data.Dataset):
 
 
 class SubDatasets(torch.utils.data.Dataset):
-  def __init__(self, videos_path, categories, transform, output_format="THWC"):
+  def __init__(self, videos_path, categories, transform, seq_lenght=64, output_format="THWC"):
     super(SubDatasets, self).__init__()
     self.videos_path = videos_path
     self.label_index = categories
     self.transform = transform
     self.output_format = output_format
+    self.seq_lenght = seq_lenght
 
   def __len__(self):
       return len(self.videos_path)
 
   def __getitem__(self, idx):
-      video_data = torchvision.io.read_video(self.videos_path[idx], end_pts=127, pts_unit="pts",
+      video_data = torchvision.io.read_video(self.videos_path[idx], end_pts=self.seq_lenght, pts_unit="pts",
                                              output_format=self.output_format)
 
       video_frames = video_data[0]
       if self.transform:
           video_frames = self.transform(image=video_frames.cpu().numpy())['image']
 
-      return video_frames, self.label_index[idx]
+      return video_frames[:64], self.label_index[idx]
 
 
-def get_data_split(base_path, batch_size, transform=None, num_workers=0):
+def get_data_split(base_path, batch_size, transform=None, seq_lenght=64, num_workers=0):
     video_data = VideoDataset(base_path=base_path)
 
     x, y = video_data.videos_path, video_data.label_index
@@ -70,9 +71,9 @@ def get_data_split(base_path, batch_size, transform=None, num_workers=0):
     X_train, X_test, y_train, y_test = train_test_split(x, y, shuffle=True, test_size=0.1, random_state=42, stratify=y)
     X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, shuffle=True, test_size=0.15, random_state=42, stratify=y_train)
 
-    train = SubDatasets(videos_path=X_train, categories=y_train, output_format="TCHW", transform=transform)
-    val = SubDatasets(videos_path=X_val, categories=y_val, output_format="TCHW", transform=None)
-    test = SubDatasets(videos_path=X_test, categories=y_test, output_format="TCHW", transform=None)
+    train = SubDatasets(videos_path=X_train, categories=y_train, output_format="TCHW", transform=transform, seq_lenght=seq_lenght)
+    val = SubDatasets(videos_path=X_val, categories=y_val, output_format="TCHW", transform=None, seq_lenght=seq_lenght)
+    test = SubDatasets(videos_path=X_test, categories=y_test, output_format="TCHW", transform=None, seq_lenght=seq_lenght)
 
     train_dataset = torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     val_dataset = torch.utils.data.DataLoader(val, batch_size=batch_size, shuffle=False, num_workers=num_workers)

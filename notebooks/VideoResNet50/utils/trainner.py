@@ -3,16 +3,16 @@ import torch.utils.data
 from torcheval.metrics import MulticlassAccuracy, Mean
 
 
-def train_silence(model, optimizer, criterion, epochs, train_dataset, val_dataset, device, preprocess=None):
+def train_silence(model, optimizer, criterion, epochs, train_dataset, val_dataset, device, num_classes, preprocess=None):
     train_history_epoch_loss = []
     val_history_epoch_loss = []
 
-    train_epoch_loss = Mean().to(device)
-    val_epoch_loss = Mean().to(device)
+    train_epoch_loss = Mean().to("cpu")
+    val_epoch_loss = Mean().to("cpu")
 
     # # micro is global
-    train_epoch_metric = MulticlassAccuracy(average="micro", num_classes=6, k=1).to(device)
-    val_epoch_metric = MulticlassAccuracy(average="micro", num_classes=6, k=1).to(device)
+    train_epoch_metric = MulticlassAccuracy(average="micro", num_classes=num_classes, k=1).to("cpu")
+    val_epoch_metric = MulticlassAccuracy(average="micro", num_classes=num_classes, k=1).to("cpu")
 
     with tqdm(total=epochs) as epoch_p_bar:
         for epoch in range(epochs):
@@ -36,8 +36,8 @@ def train_silence(model, optimizer, criterion, epochs, train_dataset, val_datase
 
                 model.eval()
                 with torch.no_grad():
-                    train_epoch_metric.update(input=y_train_pred.softmax(dim=1), target=y)
-                    train_epoch_loss.update(train_loss * train_batch_len)
+                    train_epoch_metric.update(input=y_train_pred.softmax(dim=1).detach().cpu(), target=y.detach().cpu())
+                    train_epoch_loss.update(train_loss.detach().cpu() * train_batch_len)
                 model.train()
 
             model.eval()
@@ -55,8 +55,8 @@ def train_silence(model, optimizer, criterion, epochs, train_dataset, val_datase
                     val_loss = criterion(input=y_val_pred, target=y_val)
 
                     #Update metrics
-                    val_epoch_metric.update(input=y_val_pred.softmax(dim=1), target=y_val)
-                    val_epoch_loss.update(val_loss * val_batch_len)
+                    val_epoch_metric.update(input=y_val_pred.softmax(dim=1).detach().cpu(), target=y_val.detach().cpu())
+                    val_epoch_loss.update(val_loss.detach().cpu() * val_batch_len)
 
             train_history_epoch_loss.append(train_epoch_loss.compute().item())
             val_history_epoch_loss.append(val_epoch_loss.compute().item())

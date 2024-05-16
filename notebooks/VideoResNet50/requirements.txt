@@ -1,0 +1,9 @@
+av #For read_video
+torch
+torchvision
+numpy
+matplotlib
+opencv-python
+torcheval
+tqdm
+albumentations

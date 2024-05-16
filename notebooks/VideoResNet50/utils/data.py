@@ -41,7 +41,7 @@ class VideoDataset(torch.utils.data.Dataset):
 
 
 class SubDatasets(torch.utils.data.Dataset):
-  def __init__(self, videos_path, categories, transform, seq_lenght=64, output_format="THWC"):
+  def __init__(self, videos_path, categories, transform, seq_lenght=32, output_format="THWC"):
     super(SubDatasets, self).__init__()
     self.videos_path = videos_path
     self.label_index = categories
@@ -60,10 +60,19 @@ class SubDatasets(torch.utils.data.Dataset):
       if self.transform:
           video_frames = self.transform(image=video_frames.cpu().numpy())['image']
 
-      return video_frames[:64], self.label_index[idx]
+      if video_frames.shape[0] >= self.seq_lenght:
+        video_frames = video_frames[:self.seq_lenght]
+      else:
+          print(self.videos_path[idx])
+          print(video_frames.shape)
+          zero_tensor = torch.zeros((self.seq_lenght, video_frames.shape[1], video_frames.shape[2], video_frames.shape[3]))
+          zero_tensor[:video_frames.shape[0]] = video_frames
+          return zero_tensor, self.label_index[idx]
+
+      return video_frames, self.label_index[idx]
 
 
-def get_data_split(base_path, batch_size, transform=None, seq_lenght=64, num_workers=0):
+def get_data_split(base_path, batch_size, transform=None, seq_lenght=32, num_workers=0):
     video_data = VideoDataset(base_path=base_path)
 
     x, y = video_data.videos_path, video_data.label_index

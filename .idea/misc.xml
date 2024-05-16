@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="$USER_HOME$/miniforge3" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="pytorchm1" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.10 (amlc_pytorch) (3)" project-jdk-type="Python SDK" />
 </project>

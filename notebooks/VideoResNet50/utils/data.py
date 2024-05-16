@@ -53,7 +53,7 @@ class SubDatasets(torch.utils.data.Dataset):
       return len(self.videos_path)
 
   def __getitem__(self, idx):
-      video_data = torchvision.io.read_video(self.videos_path[idx], end_pts=self.seq_lenght, pts_unit="pts",
+      video_data = torchvision.io.read_video(self.videos_path[idx], end_pts=self.seq_lenght, pts_unit="sec",
                                              output_format=self.output_format)
 
       video_frames = video_data[0]
@@ -63,8 +63,6 @@ class SubDatasets(torch.utils.data.Dataset):
       if video_frames.shape[0] >= self.seq_lenght:
         video_frames = video_frames[:self.seq_lenght]
       else:
-          print(self.videos_path[idx])
-          print(video_frames.shape)
           zero_tensor = torch.zeros((self.seq_lenght, video_frames.shape[1], video_frames.shape[2], video_frames.shape[3]))
           zero_tensor[:video_frames.shape[0]] = video_frames
           return zero_tensor, self.label_index[idx]

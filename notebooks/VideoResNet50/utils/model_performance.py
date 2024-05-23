@@ -43,7 +43,7 @@ def plot_losses(train_epoch_loss, val_epoch_loss):
     plt.ylabel("Loss")
 
     plt.plot(train_epoch_loss, label="Training Loss")
-    plt.plot(val_epoch_loss, label="Training Loss")
+    plt.plot(val_epoch_loss, label="Validation Loss")
     plt.legend()
     plt.show()
 
